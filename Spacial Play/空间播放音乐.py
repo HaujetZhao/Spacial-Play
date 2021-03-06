@@ -29,7 +29,7 @@ def 得到文件编码(file):
 
 def 自动配置HRTF():
     MHR所在文件夹 = os.path.abspath('MinPHR')
-    MHR文件主名 = os.path.splitext('03D_OpenAL_Soft_HRTF_IRC_1014_44100.mhr')[0]
+    MHR文件主名 = os.path.splitext('01D_OpenAL_Soft_HRTF_IRC_1014_44100.mhr')[0]
     APPDATA文件夹 = os.environ['appdata']
     ini文件路径 = Path(APPDATA文件夹) / 'alsoft.ini'
     
@@ -78,6 +78,7 @@ def 得到临时左右音频文件(音频文件):
         '-s', '44100',
         '-map_channel', '0.0.1',
         临时右声道文件]
+    subprocess.run(命令, capture_output=True)
     return 临时左声道文件, 临时右声道文件
     
 
