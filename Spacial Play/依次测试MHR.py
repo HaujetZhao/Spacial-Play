@@ -8,15 +8,22 @@ import subprocess
 import shlex
 import configparser
 import glob
+import chardet
 from pathlib import Path
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
+def 得到文件编码(file):
+    with open(file, 'rb') as f:
+        data = f.read()
+        return chardet.detect(data)['encoding']
 
 mhr文件夹路径名 = os.path.abspath('MinPHR')
 ini配置文件路径名 = Path(os.environ['appdata']) / 'alsoft.ini'
 
 # 避免配置文件不存在
 if not os.path.exists(ini配置文件路径名):
-    with open(ini配置文件路径名) as 配置文件:
+    with open(ini配置文件路径名, encoding='utf-8') as 配置文件:
         配置文件.write(rf'''[General]
                    hrtf=true
                    hrtf-paths="{mhr文件夹路径名},"
@@ -30,7 +37,7 @@ for MHR文件 in glob.glob(rf'{mhr文件夹路径名}\*.mhr'):
     
     配置 = configparser.ConfigParser()
     try:
-        配置.read(ini配置文件路径名)
+        配置.read(ini配置文件路径名, 得到文件编码(ini配置文件路径名))
     except:
         配置['General'] = {'hrtf':'true'}
     
@@ -39,7 +46,7 @@ for MHR文件 in glob.glob(rf'{mhr文件夹路径名}\*.mhr'):
         hrtf_path.append(MHR文件路径)
         配置['General']['hrtf-paths'] = f'"{"".join(MHR文件路径)}"'
     配置['General']['default-hrtf'] = MHR文件主名
-    with open(ini配置文件路径名, 'w') as f:
+    with open(ini配置文件路径名, 'w', encoding='utf-8') as f:
         配置.write(f)
     
     print(f'此次使用的 mhr 文件是：{MHR文件主名}')

@@ -11,6 +11,7 @@ import math
 import sys
 import os
 from pathlib import Path
+import chardet
 import argparse
 import configparser
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -20,14 +21,20 @@ os.environ['path'] = os.pathsep.join([  os.path.dirname(
                                         os.getenv('Path')])
 
 
+def 得到文件编码(file):
+    with open(file, 'rb') as f:
+        data = f.read()
+        return chardet.detect(data)['encoding']
+    
+
 def 自动配置HRTF():
     MHR所在文件夹 = os.path.abspath('MinPHR')
-    MHR文件主名 = os.path.splitext('oalsoft_hrtf_IRC_1014_44100.mhr')[0]
+    MHR文件主名 = os.path.splitext('03D_OpenAL_Soft_HRTF_IRC_1014_44100.mhr')[0]
     APPDATA文件夹 = os.environ['appdata']
     ini文件路径 = Path(APPDATA文件夹) / 'alsoft.ini'
     
     if not os.path.exists(ini文件路径):
-        with open(ini文件路径) as 配置文件:
+        with open(ini文件路径, encoding='utf-8') as 配置文件:
             配置文件.write(rf'''[General]
                     hrtf=true
                     hrtf-paths="{MHR所在文件夹},"
@@ -35,16 +42,16 @@ def 自动配置HRTF():
     else:
         配置 = configparser.ConfigParser()
         try:
-            配置.read(ini文件路径)
+            配置.read(ini文件路径, encoding=得到文件编码(ini文件路径))
         except:
             配置['General'] = {'hrtf': 'true'}
-
+            
         hrtf_path = 配置['General']['hrtf-paths'].strip('"').split(',')
         if MHR所在文件夹 not in hrtf_path:
             hrtf_path.append(MHR所在文件夹)
             配置['General']['hrtf-paths'] = f'"{",".join(hrtf_path)}"'
         配置['General']['default-hrtf'] = MHR文件主名
-        with open(ini文件路径, 'w') as f:
+        with open(ini文件路径, 'w', encoding='utf-8') as f:
             配置.write(f)
 
 # 如果用户还没有配置 openal 的 hrtf 设置，那就需要这里自动配置一下，再导入 openal
